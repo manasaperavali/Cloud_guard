@@ -1,16 +1,12 @@
-
 import pymysql
 import sys
 from prettytable import PrettyTable
 import hashlib
 
-# pip install pymysql prettytable hashlib 
-
 Host = "localhost"
 User = "manager"
-
 Password = "dummy"
-Database = "medrecord"
+Database = "healthcare_databse"
 login_data = False
 
 connection = pymysql.connect(
@@ -47,7 +43,7 @@ def home_menu():
         home_menu()
 
 
-def registeration(username, password, group):
+def registration(username, password, group):
     try:
         with connection.cursor() as cursor:
             new_row_data = {
@@ -144,18 +140,17 @@ def run_query():
         query3 = query3.replace(' "', '')
         query3 = query3.replace('"', "")
         query4 = query3.split(",")
+
         first_name = query4[0]
         last_name = query4[1]
         gender = query4[2]
         age = query4[3]
-        weigth = float(query4[4])
-        heigth = float(query4[5])
-        health_history = query[6]
-        newquery = 'VALUES("'+hash_string(first_name)+' ,"'+hash_string(last_name)+' ,"'+hash_string(gender)+' ,"' + \
-            hash_string(age)+' ,"'+hash_string(weigth)+' ,"' + \
-            hash_string(heigth)+' ,"'+hash_string(health_history)+'"'
-        main_query = query1[0] + newquery
-        print(main_query)
+        weight = float(query4[4])
+        height = float(query4[5])
+        health_history = query4[6]
+        new_query = 'VALUES("'+hash_string(first_name)+'" ,"'+hash_string(last_name)+'" ,"'+hash_string(gender)+'" ,"' + hash_string(
+            age)+'" ,"'+hash_string(str(weight))+'" ,"' + hash_string(str(height))+'" ,"'+hash_string(health_history)+'");'
+        main_query = query1[0] + new_query
 
         try:
             with connection.cursor() as cursor:
@@ -165,6 +160,10 @@ def run_query():
                 cursor.execute(main_query)
                 connection.commit()
                 print("Data inserted successfully.")
+
+                # Calculate checksum and send it to the client/user interface
+                checksum = hash_string(','.join(str(value) for value in results))
+                print(f"Checksum of Query Results: {checksum}")
 
         except Exception as e:
             print(f"Error: {e}")
@@ -187,22 +186,16 @@ def run_query():
                 with connection.cursor() as cursor:
                     cursor.execute(query)
                     results = cursor.fetchall()
-                    newquery = query.replace("healthcare", "healthcare_hash")
-                    cursor.execute(newquery)
-                    resutls2 = cursor.fetchall()
+                    new_query = query.replace("healthcare", "healthcare_hash")
+                    cursor.execute(new_query)
+                    results2 = cursor.fetchall()
                     table = PrettyTable()
                     table.field_names = results[0].keys() if results else []
 
-                    for i, (row, hash_row) in enumerate(zip(results, resutls2)):
+                    for i, (row, hash_row) in enumerate(zip(results, results2)):
 
                         table.add_row(row.values())
                         for key, value in row.items():
-
-                            # if type(value) == float:
-                            #     value = int(value)
-                            #     print(value)
-                            #     print("-------------------------")
-
                             manual_hash = hash_string(str(value))
                             existing_hash = hash_row.get(key, "")
                             if key == "id":
@@ -212,14 +205,13 @@ def run_query():
                             if manual_hash == existing_hash:
                                 pass
                             else:
-                                print(f"Row {i+1}, column {key}")
-                                print("Value: ", value)
-                                
-                                print("Manual hash: ", manual_hash)
-                                print("Existing hash: ", existing_hash)
                                 print("Hash mismatch!")
                                 sys.exit()
                     print(table)
+
+                    # Calculate checksum and send it to the client/user interface
+                    checksum = hash_string(','.join(str(value) for value in results))
+                    print(f"Checksum of Query Results: {checksum}")
 
             except Exception as e:
                 print(f"Error: {e}")
@@ -246,7 +238,7 @@ def register():
     group = ""
     while group not in group_list:
         group = input("Enter group type(H/R): ")
-    registeration(username, password, group)
+    registration(username, password, group)
 
 
 if __name__ == "__main__":
