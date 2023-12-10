@@ -3,6 +3,7 @@ import hashlib
 import csv
 import random
 
+
 def hash_string(input_string):
     sha256 = hashlib.sha256()
     sha256.update(input_string.encode('utf-8'))
