@@ -1,3 +1,4 @@
+
 import pymysql
 import sys
 from prettytable import PrettyTable
