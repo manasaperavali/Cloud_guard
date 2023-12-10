@@ -41,7 +41,7 @@ def main():
                                     charset='utf8mb4',
                                     cursorclass=pymysql.cursors.DictCursor)
 
-    db_name = 'medrecord'
+    db_name = 'healthcare_databse'
     try:
 
         if not database_exists(db_connection, db_name):
